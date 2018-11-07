@@ -24,6 +24,14 @@ class EpisodeLogger():
         self.network_score = game_state.get_game_scores()[network_player_num - 1]
         self.opponent_score = game_state.get_game_scores()[2 - network_player_num]
         self.herbBiscuitFound = int(game_state.herb_biscuit_player is not None)
+        self.total_game_reward = -1
+        if game_state.is_game_over():
+            if game_state.get_winning_player() == network_player_num:
+                self.total_game_reward = 1.0
+            elif game_state.get_winning_player() == 3 - network_player_num:
+                self.total_game_reward = 0.1
+            else:
+                self.total_game_reward = 0.5
         self.rList.append(self.total_game_reward + 0.0)
         self.legalList.append(self.total_legal_moves + 0.0)
         self.networkScoreList.append(self.network_score + 0.0)

@@ -29,22 +29,26 @@ class PlantAction(PlayerAction):
     def can_perform_action(self, game_state):
         if len(game_state.deck) == 0:
             return False
-        if self.is_right_phase(game_state):
-            if game_state.phase_two_card_number == 1:
-                return True
-            if game_state.phase_two_card_number == 2:
-                return self.garden_type != game_state.phase_two_garden_used
-        return False
+        return self.is_right_phase(game_state)
+        #if self.is_right_phase(game_state):
+        #    if game_state.phase_two_card_number == 1:
+        #        return True
+        #    if game_state.phase_two_card_number == 2:
+        #        return self.garden_type != game_state.phase_two_garden_used
+        #return False
 
     def perform_action(self, old_game_state):
         game_state = copy.deepcopy(old_game_state)
         player_num = game_state.player_turn
-        plant = game_state.deck.pop()
+        plant_1 = game_state.deck.pop()
+        plant_2 = game_state.deck.pop()
         if self.garden_type == "PUBLIC":
-            game_state.public_garden += [plant]
+            game_state.public_garden += [plant_1]
+            game_state.player_gardens[player_num] += [plant_2]
         else:
-            game_state.player_gardens[player_num] += [plant]
-        game_state.phase_two_garden_used = self.garden_type
+            game_state.player_gardens[player_num] += [plant_1]
+            game_state.public_garden += [plant_2]
+        #game_state.phase_two_garden_used = self.garden_type
         game_state.proceed_to_next_phase()
         return game_state
 

@@ -91,10 +91,10 @@ class GameState():
 
     def proceed_to_next_phase(self):
         if self.phase_number == 2:
-            if self.phase_two_card_number == 2:
-                self.switch_player_turn()
-                self.switch_phase_number()
-            self.switch_phase_two_card_number()
+            # if self.phase_two_card_number == 2:
+            self.switch_player_turn()
+            self.switch_phase_number()
+            # self.switch_phase_two_card_number()
         else:
             if self.is_deck_empty():
                 self.switch_player_turn()
@@ -114,13 +114,14 @@ class GameState():
         self.phase_number = 3 - self.phase_number
 
     def get_phase_state_vector(self):
-        if self.phase_number == 1:
-            return [1, 0, 0, 0]
-        elif self.phase_two_card_number == 1:
-            return [0, 1, 0, 0]
-        elif self.phase_two_garden_used == "PUBLIC":
-            return [0, 0, 1, 0]
-        return [0, 0, 1, 1]
+        return [self.phase_number - 1]
+        #if self.phase_number == 1:
+        #    return [1, 0, 0, 0]
+        #elif self.phase_two_card_number == 1:
+        #    return [0, 1, 0, 0]
+        #elif self.phase_two_garden_used == "PUBLIC":
+        #    return [0, 0, 1, 0]
+        #return [0, 0, 1, 1]
 
     def get_garden_vector_from_list(self, garden_list):
         vec = []

@@ -163,13 +163,13 @@ class ExperienceBuffer():
                 # self.experience_buffer += [memory[0]]
             else:
                 memory_reward = (self.gamma ** memory[1]) * reward
-                new_experience = memory[0][:4] + (memory_reward,)
+                new_experience = memory[0][:5] + (memory_reward,)
                 self.experience_buffer.store(memory[0])
                 # self.experience_buffer += [new_experience]
         self.multi_step_memory = []
 
-    def add_experience(self, state_vec, action_index, possible_action_indexes, new_state_vec=None, reward=None):
-        experience_tuple = (state_vec, action_index, possible_action_indexes, new_state_vec, reward)
+    def add_experience(self, state_vec, action_index, possible_action_indexes, new_state_vec=None, new_possible_action_indexes=None, reward=None):
+        experience_tuple = (state_vec, action_index, possible_action_indexes, new_state_vec, new_possible_action_indexes, reward)
         if action_index not in possible_action_indexes:  # We just tried to do something impossible
             # self.experience_buffer += [experience_tuple]
             self.experience_buffer.store(experience_tuple)
@@ -183,7 +183,7 @@ class ExperienceBuffer():
                 self.multi_step_memory += [(experience_tuple, 0)]
                 new_multi_step_memory = []
                 for memory in self.multi_step_memory:
-                    new_experience = (memory[0][0], memory[0][1], memory[0][2], new_state_vec.copy(), memory[0][4])
+                    new_experience = (memory[0][0], memory[0][1], memory[0][2], new_state_vec.copy(), list(new_possible_action_indexes), memory[0][5])
                     new_memory = (new_experience, memory[1] + 1)
                     if new_memory[1] == self.num_multi_steps:
                         # self.experience_buffer += [new_experience]

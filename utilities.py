@@ -19,8 +19,8 @@ def finish_random_player_turn(game_state, network_player_num):
     return game_state
 
 
-LOSS_REWARD = -0.4
-DRAW_REWARD = -0.2
+LOSS_REWARD = 0.1
+DRAW_REWARD = 0.5
 WIN_REWARD = 1.0
 
 

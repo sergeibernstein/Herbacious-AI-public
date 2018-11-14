@@ -1,5 +1,9 @@
 from random import shuffle
 
+LOSS_REWARD = 0.1
+DRAW_REWARD = 0.5
+WIN_REWARD = 1.0
+
 herb_counts = {
     "Dill":9,
     "Bay":9,

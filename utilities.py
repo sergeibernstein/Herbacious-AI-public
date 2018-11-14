@@ -1,6 +1,7 @@
 import actions
 from actions import get_possible_actions
 from game import random_player
+from constants import *
 
 
 def get_gamma(episode_num):
@@ -17,11 +18,6 @@ def finish_random_player_turn(game_state, network_player_num):
         random_action = random_player(game_state, possible_actions)
         game_state = random_action.perform_action(game_state)
     return game_state
-
-
-LOSS_REWARD = 0.1
-DRAW_REWARD = 0.5
-WIN_REWARD = 1.0
 
 
 def get_reward(game_state, network_player_num):

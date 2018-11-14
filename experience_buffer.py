@@ -16,6 +16,8 @@ class ExperienceTree():
         self.data = list(np.zeros(self.capacity))
 
     def add(self, priority, data):
+        if np.isnan(priority):
+            print("Input to tree add is nan")
         # Look at what index we want to put the experience
         tree_index = self.data_pointer + self.capacity - 1
 
@@ -31,6 +33,8 @@ tree_index  0 0  0  We fill the leaves from left to right
         self.data[self.data_pointer] = data
 
         # Update the leaf
+        if np.isnan(priority):
+            print("Nan input to update in add")
         self.update(tree_index, priority)
 
         # Add 1 to data_pointer
@@ -44,9 +48,16 @@ tree_index  0 0  0  We fill the leaves from left to right
     """
 
     def update(self, tree_index, priority):
+        if np.isnan(priority):
+            print("Got nan input to tree update")
+
         # Change = new priority score - former priority score
         change = priority - self.tree[tree_index]
         self.tree[tree_index] = priority
+
+        if np.isnan(change):
+            print("tree change is nan")
+
 
         # then propagate the change through tree
         while tree_index != 0:  # this method is faster than the recursive loop in the reference code
@@ -68,7 +79,11 @@ tree_index  0 0  0  We fill the leaves from left to right
             tree_index = 2 (because // round the result)
             """
             tree_index = (tree_index - 1) // 2
+            if np.isnan(self.tree[tree_index]):
+                print("old tree index is nan")
             self.tree[tree_index] += change
+            if np.isnan(self.tree[tree_index]):
+                print("new tree index is nan")
 
     """
     Here we get the leaf_index, priority value of that leaf and experience associated with that index
@@ -128,28 +143,38 @@ tree_index  0 0  0  We fill the leaves from left to right
         if max_priority == 0:
             max_priority = self.absolute_error_upper
 
+        if np.isnan(max_priority):
+            print("Trying to add a nan max_priority")
+
         self.add(max_priority, experience)  # set the max p for new p
 
-    def sample(self):
-        value = np.random.uniform(0, self.total_priority)
+    def sample(self, batch_size=None):
+        if batch_size is None:
+            value = np.random.uniform(0, self.total_priority)
 
-        """
-        Experience that correspond to each value is retrieved
-        """
-        index, priority, data = self.get_leaf(value)
+            index, priority, data = self.get_leaf(value)
 
-        # P(j)
-        sampling_probabilities = priority / self.total_priority
+            return index, data
+        else:
+            experience_pairs = []
 
-        #  IS = (1/N * 1/P(i))**b /max wi == (N*P(i))**-b  /max wi
-        # b_ISWeights[i, 0] = np.power(n * sampling_probabilities, -self.PER_b)/ max_weight
+            priority_interval = self.total_priority / batch_size
 
-        return index, data
+            for i in range(batch_size):
+                value = np.random.uniform(i * priority_interval, (i + 1) * priority_interval)
+                index, priority, data = self.get_leaf(value)
+                experience_pairs += [(index, data)]
+
+            #  IS = (1/N * 1/P(i))**b /max wi == (N*P(i))**-b  /max wi
+            # b_ISWeights[i, 0] = np.power(n * sampling_probabilities, -self.PER_b)/ max_weight
+
+            return experience_pairs
+
 
 
 class ExperienceBuffer():
 
-    def __init__(self, capacity_exp=16, num_multi_steps=3, gamma=0.99):
+    def __init__(self, capacity_exp=16, num_multi_steps=3, gamma=1.0):
         self.experience_buffer = ExperienceTree(capacity_exp)
         self.capacity_exp = capacity_exp
         self.num_multi_steps = num_multi_steps
@@ -160,23 +185,19 @@ class ExperienceBuffer():
         for memory in self.multi_step_memory:
             if reward is None:
                 self.experience_buffer.store(memory[0])
-                # self.experience_buffer += [memory[0]]
             else:
                 memory_reward = (self.gamma ** memory[1]) * reward
                 new_experience = memory[0][:5] + (memory_reward,)
-                self.experience_buffer.store(memory[0])
-                # self.experience_buffer += [new_experience]
+                self.experience_buffer.store(new_experience)
         self.multi_step_memory = []
 
     def add_experience(self, state_vec, action_index, possible_action_indexes, new_state_vec=None, new_possible_action_indexes=None, reward=None):
         experience_tuple = (state_vec, action_index, possible_action_indexes, new_state_vec, new_possible_action_indexes, reward)
         if action_index not in possible_action_indexes:  # We just tried to do something impossible
-            # self.experience_buffer += [experience_tuple]
             self.experience_buffer.store(experience_tuple)
             self.dump_memory_to_experience_buffer()
         else:
             if reward != 0.0:  # GAME OVER
-                # self.experience_buffer += [experience_tuple]
                 self.experience_buffer.store(experience_tuple)
                 self.dump_memory_to_experience_buffer(reward)
             else:
@@ -186,16 +207,13 @@ class ExperienceBuffer():
                     new_experience = (memory[0][0], memory[0][1], memory[0][2], new_state_vec.copy(), list(new_possible_action_indexes), memory[0][5])
                     new_memory = (new_experience, memory[1] + 1)
                     if new_memory[1] == self.num_multi_steps:
-                        # self.experience_buffer += [new_experience]
                         self.experience_buffer.store(new_experience)
                     else:
                         new_multi_step_memory += [new_memory]
                 self.multi_step_memory = new_multi_step_memory
 
-    def sample_experience(self):
-        return self.experience_buffer.sample()
-        # random_index = random.choice(range(len(self.experience_buffer)))
-        # return self.experience_buffer[random_index]
+    def sample_experience(self, batch_size=None):
+        return self.experience_buffer.sample(batch_size)
 
     def clear_buffer(self):
         self.experience_buffer = ExperienceTree(self.capacity_exp)

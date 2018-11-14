@@ -1,3 +1,5 @@
+from constants import *
+
 class EpisodeLogger():
 
     def __init__(self):
@@ -7,6 +9,7 @@ class EpisodeLogger():
         self.networkScoreList = []
         self.opponentScoreList = []
         self.herbBiscuitList = []
+        self.card_loss_map = {}
         self.total_game_reward = 0
         self.total_legal_moves = 0
         self.network_score = 0
@@ -27,13 +30,24 @@ class EpisodeLogger():
         self.total_game_reward = -1
         if game_state.is_game_over():
             if game_state.get_winning_player() == network_player_num:
-                self.total_game_reward = 1.0
+                self.total_game_reward = WIN_REWARD
             elif game_state.get_winning_player() == 3 - network_player_num:
-                self.total_game_reward = 0.1
+                self.total_game_reward = LOSS_REWARD
             else:
-                self.total_game_reward = 0.5
+                self.total_game_reward = DRAW_REWARD
         self.rList.append(self.total_game_reward + 0.0)
         self.legalList.append(self.total_legal_moves + 0.0)
         self.networkScoreList.append(self.network_score + 0.0)
         self.opponentScoreList.append(self.opponent_score + 0.0)
         self.herbBiscuitList.append(self.herbBiscuitFound + 0.0)
+
+    def log_loss(self, loss, card_num):
+        self.lossList += [loss]
+        if card_num not in self.card_loss_map:
+            self.card_loss_map[card_num] = [loss]
+        else:
+            self.card_loss_map[card_num] += [loss]
+
+    def list_average_split(self, li, split_factor=10):
+        for si in range(len(li))[::len(li) / split_factor]:
+            print(sum(li[si:si + (len(li) / split_factor)]) / (len(li) / (split_factor + 0.0)))
